@@ -14,6 +14,19 @@ This module is meant to be used post migration, and it will do the following:
 
 # Instalation
 
+**Add the package to your composer.json**
+
+`composer require treestone/postmigration`
+
+**Enable and Install the Module88
+
+`bin/magento module:enable Treestone_Postmigration`
+
+# Usage
+
+**This application for now consists of only a one line CLI command**
+
+`bin/magento treestone:postmigration:attributesets`
 
 # Facts
 
