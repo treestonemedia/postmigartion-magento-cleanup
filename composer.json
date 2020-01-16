@@ -1,0 +1,30 @@
+{
+  "name": "treestone/post-migration",
+  "description": "Treestone extension to run after M1 to M2 migration",
+  "type": "magento2-module",
+  "version": "0.0.1",
+  "license": "proprietary",
+  "keywords": [
+    "magento 2",
+    "treestone",
+    "migration",
+    "Migration_",
+    "data-migration-tool"
+  ],
+  "authors": [
+    {
+      "name": "Treestone",
+      "email": "support@treestone.com",
+      "homepage": "https://www.treestone.com",
+      "role": "Technical Support"
+    }
+  ],
+  "autoload": {
+    "files": [
+      "registration.php"
+    ],
+    "psr-4": {
+      "Treestone\\Postmigration\\": ""
+    }
+  }
+}
