@@ -18,7 +18,7 @@ This module is meant to be used post migration, and it will do the following:
 
 `composer require treestone/postmigration`
 
-**Enable and Install the Module88
+**Enable and Install the Module**
 
 `bin/magento module:enable Treestone_Postmigration`
 
