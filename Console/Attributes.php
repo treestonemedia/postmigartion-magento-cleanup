@@ -79,12 +79,18 @@ class Attributes extends Command {
         $initialDefaultAttributeSetId = $this->initialDefaultAttributeSetId;
         $initialDefaultAttributeSetName = $this->initialDefaultAttributeSetName;
 
+        $output->writeln('The default Attribute set was initially ID: '. $initialDefaultAttributeSetId. ' Name: '.$initialDefaultAttributeSetName);
+
         $migrationAttributeSetId = $this->getAttributeSetIdByName('Migration_Default');
+
+        $output->writeln('The migration Attribute set is ID: '. $migrationAttributeSetId);
+        $output->writeln('Now trying to set the default product attribute set to Migration_Default');
 
         //Set the default product attribute set to the migrated one if it isn't already
         if ($migrationAttributeSetId != $initialDefaultAttributeSetId){
             try {
                 $this->setDefaultAttributeSet($migrationAttributeSetId);
+                $output->writeln('Done. Lets Confirm');
             } catch (\Exception $e) {
             }
         }
@@ -94,12 +100,14 @@ class Attributes extends Command {
         //Confirm that it worked by re-getting the default attribute set
         try {
             $defaultAttributeSetId = $this->getDefaultAttributeSetId();
+            $output->writeln('The default Attribute set is currently ID: '. $defaultAttributeSetId);
         } catch (LocalizedException $e) {
         }
         $defaultAttributeSetName = $this->getAttributeSetNameById($defaultAttributeSetId);
         $output->writeln('The default Attribute set is now ID: '. $defaultAttributeSetId. ' Name: '.$defaultAttributeSetName);
 
         //Delete the Default attributesetId
+        $output->writeln('Lets Try deleting the initial default attribute set');
         try {
             $output->writeln($this->deleteInitialDefaultAttributeSet());
         } catch (InputException $e) {
@@ -202,6 +210,7 @@ class Attributes extends Command {
      */
     public function getDefaultAttributeSetId()
     {
+        $this->modelConfig->clear();
         $defaultAttributeSetId = $this->productRessourceModel->getEntityType()->getDefaultAttributeSetId();
         return $defaultAttributeSetId;
     }
@@ -291,6 +300,7 @@ class Attributes extends Command {
 
         if($initialAttributeSetId = $this->getAttributeSetIdByName('Default'))
         {
+            $this->modelConfig->clear();
             $this->attributeSetRepository->deleteById($initialAttributeSetId);
 
             return 'Deleted Initial Default Attribute Set';
