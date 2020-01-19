@@ -78,7 +78,7 @@ class Attributes extends Command {
         $migrationAttributeSetId = $this->getAttributeSetIdByName('Migration_Default');
 
         //Set the default product attribute set to the migrated one if it isn't already
-        if (!$migrationAttributeSetId == $initialDefaultAttributeSetId){
+        if ($migrationAttributeSetId != $initialDefaultAttributeSetId){
             try {
                 $this->setDefaultAttributeSet($migrationAttributeSetId);
             } catch (\Exception $e) {
