@@ -61,6 +61,10 @@ class Attributes extends Command {
      * @var \Magento\Eav\Setup\EavSetup
      */
     private $eavSetup;
+    /**
+     * @var \Magento\Eav\Model\Config
+     */
+    private $modelConfig;
 
     protected function configure()
     {
@@ -129,6 +133,7 @@ class Attributes extends Command {
     public function __construct(
 
         \Magento\Eav\Setup\EavSetup $eavSetup,
+        \Magento\Eav\Model\Config $modelConfig,
         \Magento\Eav\Model\AttributeSetRepository $attributeSetRepository,
         \Magento\Catalog\Model\ResourceModel\Product $productRessourceModel,
         \Magento\Eav\Api\AttributeSetRepositoryInterface $attributeSetRepositoryInterface,
@@ -142,6 +147,7 @@ class Attributes extends Command {
     {
 
         $this->eavSetup = $eavSetup;
+        $this->modelConfig = $modelConfig;
         $this->attributeSetRepository = $attributeSetRepository;
         $this->productRessourceModel = $productRessourceModel;
         $this->attributeSetRepositoryInterface =$attributeSetRepositoryInterface;
@@ -183,9 +189,9 @@ class Attributes extends Command {
      */
     public function setDefaultAttributeSet( $id)
     {
-
         $entityType = 'catalog_product';
         $this->eavSetup->updateEntityType($entityType, 'default_attribute_set_id', $id);
+        $this->modelConfig->clear();
 
     }
 
@@ -404,12 +410,12 @@ class Attributes extends Command {
             $attributeGroup = $this->attributeGroupRepositoryInterface->get($groupId);
 
             $attributeGroup->setAttributeGroupName($newName);
-                try {
-                    $this->attributeGroupRepositoryInterface->save($attributeGroup);
-                } catch (NoSuchEntityException $e) {
-                } catch (StateException $e) {
-                }
-                return $attributeGroup->getAttributeGroupName();
+            try {
+                $this->attributeGroupRepositoryInterface->save($attributeGroup);
+            } catch (NoSuchEntityException $e) {
+            } catch (StateException $e) {
+            }
+            return $attributeGroup->getAttributeGroupName();
         } catch (NoSuchEntityException $e) {
         }
 
