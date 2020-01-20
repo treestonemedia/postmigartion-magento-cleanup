@@ -19,10 +19,6 @@ class Attributes extends Command {
      */
     private $attributeSetRepository;
     /**
-     * @var \Magento\Catalog\Model\ResourceModel\Product
-     */
-    private $productRessourceModel;
-    /**
      * @var \Magento\Eav\Api\AttributeSetRepositoryInterface
      */
     private $attributeSetRepositoryInterface;
@@ -43,10 +39,6 @@ class Attributes extends Command {
      */
     private $filterGroupBuilder;
     /**
-     * @var \Magento\Eav\Model\ResourceModel\Entity\Attribute\Set
-     */
-    private $attributeSetResourceModel;
-    /**
      * @var \Magento\Eav\Api\AttributeGroupRepositoryInterface
      */
     private $attributeGroupRepositoryInterface;
@@ -57,14 +49,11 @@ class Attributes extends Command {
 
     private $initialDefaultAttributeSetId;
     private $initialDefaultAttributeSetName;
+
     /**
-     * @var \Magento\Eav\Setup\EavSetup
+     * @var \Magento\Eav\Setup\EavSetupFactory
      */
-    private $eavSetup;
-    /**
-     * @var \Magento\Eav\Model\Config
-     */
-    private $modelConfig;
+    private $eavSetupFactory;
 
     protected function configure()
     {
@@ -82,6 +71,7 @@ class Attributes extends Command {
         $output->writeln('The default Attribute set was initially ID: '. $initialDefaultAttributeSetId. ' Name: '.$initialDefaultAttributeSetName);
 
         $migrationAttributeSetId = $this->getAttributeSetIdByName('Migration_Default');
+        $migrationAttributeSetName= 'Migration_Default';
 
         $output->writeln('The migration Attribute set is ID: '. $migrationAttributeSetId);
         $output->writeln('Now trying to set the default product attribute set to Migration_Default');
@@ -89,7 +79,7 @@ class Attributes extends Command {
         //Set the default product attribute set to the migrated one if it isn't already
         if ($migrationAttributeSetId != $initialDefaultAttributeSetId){
             try {
-                $this->setDefaultAttributeSet($migrationAttributeSetId);
+                $this->setDefaultAttributeSet($migrationAttributeSetName);
                 $output->writeln('Done. Lets Confirm');
             } catch (\Exception $e) {
             }
@@ -126,9 +116,7 @@ class Attributes extends Command {
     }
 
     /**
-     * @param \Magento\Eav\Setup\EavSetup $eavSetup
      * @param \Magento\Eav\Model\AttributeSetRepository $attributeSetRepository
-     * @param \Magento\Catalog\Model\ResourceModel\Product $productRessourceModel
      * @param \Magento\Eav\Api\AttributeSetRepositoryInterface $attributeSetRepositoryInterface
      * @param \Magento\Eav\Api\AttributeGroupRepositoryInterface $attributeGroupRepositoryInterface
      * @param \Magento\Eav\Api\AttributeRepositoryInterface $attributeRepositoryInterface
@@ -136,28 +124,24 @@ class Attributes extends Command {
      * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
      * @param \Magento\Framework\Api\Search\FilterGroup $filterGroup
      * @param \Magento\Framework\Api\Search\FilterGroupBuilder $filterGroupBuilder
+     * @param \Magento\Eav\Setup\EavSetupFactory $eavSetupFactory
      * @throws LocalizedException
      */
     public function __construct(
 
-        \Magento\Eav\Setup\EavSetup $eavSetup,
-        \Magento\Eav\Model\Config $modelConfig,
         \Magento\Eav\Model\AttributeSetRepository $attributeSetRepository,
-        \Magento\Catalog\Model\ResourceModel\Product $productRessourceModel,
         \Magento\Eav\Api\AttributeSetRepositoryInterface $attributeSetRepositoryInterface,
         \Magento\Eav\Api\AttributeGroupRepositoryInterface $attributeGroupRepositoryInterface,
         \Magento\Eav\Api\AttributeRepositoryInterface $attributeRepositoryInterface,
         \Magento\Framework\Api\SearchCriteriaInterface $searchCriteriaInterface,
         \Magento\Framework\Api\FilterBuilder $filterBuilder,
         \Magento\Framework\Api\Search\FilterGroup $filterGroup,
-        \Magento\Framework\Api\Search\FilterGroupBuilder $filterGroupBuilder
+        \Magento\Framework\Api\Search\FilterGroupBuilder $filterGroupBuilder,
+        \Magento\Eav\Setup\EavSetupFactory $eavSetupFactory
     )
     {
 
-        $this->eavSetup = $eavSetup;
-        $this->modelConfig = $modelConfig;
         $this->attributeSetRepository = $attributeSetRepository;
-        $this->productRessourceModel = $productRessourceModel;
         $this->attributeSetRepositoryInterface =$attributeSetRepositoryInterface;
         $this->attributeGroupRepositoryInterface = $attributeGroupRepositoryInterface;
         $this->attributeRepositoryInterface = $attributeRepositoryInterface;
@@ -165,6 +149,7 @@ class Attributes extends Command {
         $this->filterBuilder = $filterBuilder;
         $this->filterGroup = $filterGroup;
         $this->filterGroupBuilder = $filterGroupBuilder;
+        $this->eavSetupFactory =$eavSetupFactory;
         $this->setInitialDefaultAttributeSetId();
         $this->setInitialDefaultAttributeSetName();
 
@@ -192,14 +177,14 @@ class Attributes extends Command {
     /**
      * Set Default Attribute Set to Entity Type
      *
-     * @param int $Id
+     * @param string $name
      * @
      */
-    public function setDefaultAttributeSet( $id)
+    public function setDefaultAttributeSet( $name)
     {
         $entityType = 'catalog_product';
-        $this->eavSetup->updateEntityType($entityType, 'default_attribute_set_id', $id);
-        $this->modelConfig->clear();
+        $eavFactory = $this->eavSetupFactory->create();
+        $eavFactory->setDefaultSetToEntityType($entityType,$name);
 
     }
 
@@ -210,8 +195,9 @@ class Attributes extends Command {
      */
     public function getDefaultAttributeSetId()
     {
-        $this->modelConfig->clear();
-        $defaultAttributeSetId = $this->productRessourceModel->getEntityType()->getDefaultAttributeSetId();
+        $entityType = 'catalog_product';
+        $eavFactory = $this->eavSetupFactory->create();
+        $defaultAttributeSetId = $eavFactory->getDefaultAttributeSetId($entityType);
         return $defaultAttributeSetId;
     }
 
@@ -300,7 +286,6 @@ class Attributes extends Command {
 
         if($initialAttributeSetId = $this->getAttributeSetIdByName('Default'))
         {
-            $this->modelConfig->clear();
             $this->attributeSetRepository->deleteById($initialAttributeSetId);
 
             return 'Deleted Initial Default Attribute Set';
